@@ -11,24 +11,31 @@ const TOKENS: Record<ServiceState, { bg: string; fg: string; dot: string }> = {
 interface Props {
   state: ServiceState;
   label: string;
+  /** The header pill keeps its dot; row pills carry state by tint alone. */
+  dot?: boolean;
 }
 
-export function StatusPill({ state, label }: Props) {
-  const { bg, fg, dot } = TOKENS[state];
+export function StatusPill({ state, label, dot = false }: Props) {
+  const t = TOKENS[state];
   return (
     <m.span
-      className="inline-flex shrink-0 items-center gap-[5px] rounded-full py-[3px] pr-[9px] pl-[7px] text-[11px] leading-none font-medium whitespace-nowrap"
+      className={
+        'inline-flex shrink-0 items-center rounded-full py-[3px] text-[11px] leading-none font-medium whitespace-nowrap ' +
+        (dot ? 'gap-[5px] pr-[9px] pl-[7px]' : 'px-[9px] tabular-nums')
+      }
       // Colour is the only thing that moves when a service flips state.
-      animate={{ backgroundColor: bg, color: fg }}
+      animate={{ backgroundColor: t.bg, color: t.fg }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      style={{ backgroundColor: bg, color: fg }}
+      style={{ backgroundColor: t.bg, color: t.fg }}
     >
-      <m.span
-        className="size-[5px] rounded-full"
-        animate={{ backgroundColor: dot }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-        style={{ backgroundColor: dot }}
-      />
+      {dot && (
+        <m.span
+          className="size-[5px] rounded-full"
+          animate={{ backgroundColor: t.dot }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          style={{ backgroundColor: t.dot }}
+        />
+      )}
       {label}
     </m.span>
   );

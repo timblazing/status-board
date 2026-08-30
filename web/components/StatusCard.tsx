@@ -41,7 +41,7 @@ export function StatusCard({ data, fetchedAt, stale, firstPaint }: Props) {
     >
       <header className="flex flex-wrap items-center gap-x-[10px] gap-y-2 px-2 pb-[14px]">
         <h1 className="text-[17px] leading-none font-semibold tracking-tight">{data.title}</h1>
-        <StatusPill state={data.overall} label={OVERALL_LABEL[data.overall]} />
+        <StatusPill state={data.overall} label={OVERALL_LABEL[data.overall]} dot />
         <span
           className="ml-auto font-mono text-[11px] leading-none"
           style={{ color: 'var(--muted)' }}

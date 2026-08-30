@@ -12,11 +12,16 @@ export type PackedHistory = string;
 export interface ServiceStatus {
   name: string;
   state: ServiceState;
-  /** Latency of the most recent successful check, ms. */
-  latencyMs: number | null;
+  /** Config `description`, falling back to the service's URL. */
+  description: string;
   /** Uptime over recorded checks only; null until the first check lands. */
   uptimePct: number | null;
   history: PackedHistory;
+  /**
+   * Seconds covered by the recorded checks, for the "57m … now" labels under
+   * the strip. Null until there are at least two checks to span.
+   */
+  windowSeconds: number | null;
 }
 
 export interface StatusGroup {
@@ -28,7 +33,7 @@ export interface StatusSnapshot {
   title: string;
   theme: 'dark' | 'light' | 'system';
   refreshInterval: number;
-  show: { uptime: boolean; latency: boolean; bars: boolean };
+  show: { description: boolean; bars: boolean };
   /** Overall board state, derived from the worst service state. */
   overall: ServiceState;
   healthy: number;

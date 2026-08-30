@@ -11,13 +11,14 @@ history_size: 30 # number of bars kept per service
 degraded_threshold_ms: 1000 # slower than this while up = Degraded
 
 show:
-  uptime: true
-  latency: true
+  description: true # the line under each service name
   bars: true
 
 services:
   - name: API
     url: https://api.example.com/health
+    # Shown under the name. Defaults to the URL when omitted.
+    description: Public REST API
 
   - name: Web App
     url: https://example.com

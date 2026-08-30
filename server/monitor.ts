@@ -4,7 +4,7 @@ import type { ServiceState, ServiceStatus, StatusSnapshot } from './types.ts';
 const USER_AGENT = 'StatusBoard/1.0 (+https://github.com/status-board)';
 
 /** One slot of the history ring. `null` means the slot has never been filled. */
-type Slot = { ok: boolean; slow: boolean } | null;
+type Slot = { ok: boolean; slow: boolean; t: number } | null;
 
 const STATE_CHAR: Record<Exclude<ServiceState, 'pending'>, string> = {
   operational: 'o',
@@ -19,7 +19,6 @@ class ServiceMonitor {
   /** Index of the next slot to write; the ring is read oldest-first from here. */
   private cursor = 0;
   private filled = 0;
-  private latencyMs: number | null = null;
   private timer: NodeJS.Timeout | null = null;
   private startTimer: NodeJS.Timeout | null = null;
   lastCheckedAt = 0;
@@ -51,8 +50,8 @@ class ServiceMonitor {
     this.timer = null;
   }
 
-  private record(slot: NonNullable<Slot>): void {
-    this.slots[this.cursor] = slot;
+  private record(slot: Omit<NonNullable<Slot>, 't'>): void {
+    this.slots[this.cursor] = { ...slot, t: Date.now() };
     this.cursor = (this.cursor + 1) % this.size;
     if (this.filled < this.size) this.filled++;
     this.lastCheckedAt = Date.now();
@@ -77,7 +76,6 @@ class ServiceMonitor {
         : res.status >= 200 && res.status < 400;
 
       if (ok) {
-        this.latencyMs = ms;
         this.record({ ok: true, slow: ms > degradedThresholdMs });
       } else {
         this.record({ ok: false, slow: false });
@@ -122,12 +120,18 @@ class ServiceMonitor {
     });
     const packed = '-'.repeat(this.size - chars.length) + chars.join('');
 
+    // Span from the oldest retained check to the newest.
+    const first = history[0];
+    const windowSeconds =
+      first && last && last.t > first.t ? Math.round((last.t - first.t) / 1000) : null;
+
     return {
       name: this.config.name,
       state,
-      latencyMs: this.latencyMs,
+      description: this.config.description,
       uptimePct,
       history: packed,
+      windowSeconds,
     };
   }
 }

@@ -4,6 +4,8 @@ import { parse } from 'yaml';
 export interface ServiceConfig {
   name: string;
   url: string;
+  /** Shown under the name; defaults to the URL when unset. */
+  description: string;
   timeout: number;
   expectedStatus: number[] | null;
   degradedThresholdMs: number;
@@ -23,7 +25,7 @@ export interface Config {
   refreshInterval: number;
   historySize: number;
   degradedThresholdMs: number;
-  show: { uptime: boolean; latency: boolean; bars: boolean };
+  show: { description: boolean; bars: boolean };
   services: ServiceConfig[];
   groups: GroupConfig[] | null;
 }
@@ -71,6 +73,9 @@ function parseService(raw: unknown, index: number, fallbackDegraded: number): Se
   if (typeof s.url !== 'string' || !s.url.trim()) {
     throw new ConfigError(`${label} is missing a url`);
   }
+  if (s.description != null && typeof s.description !== 'string') {
+    throw new ConfigError(`${label} description must be a string`);
+  }
   let url: URL;
   try {
     url = new URL(s.url);
@@ -105,6 +110,8 @@ function parseService(raw: unknown, index: number, fallbackDegraded: number): Se
   return {
     name: s.name.trim(),
     url: url.toString(),
+    // Fall back to the URL, trimmed of its scheme so it reads as a label.
+    description: (s.description as string)?.trim() || s.url.replace(/^https?:\/\//, ''),
     timeout: num(s.timeout, DEFAULTS.timeout, `${label} timeout`, 100, 120_000),
     expectedStatus,
     degradedThresholdMs: num(
@@ -188,8 +195,7 @@ export function parseConfig(source: string): Config {
     historySize: num(c.history_size, DEFAULTS.historySize, 'history_size', 1, 200),
     degradedThresholdMs,
     show: {
-      uptime: bool(show.uptime, true, 'show.uptime'),
-      latency: bool(show.latency, true, 'show.latency'),
+      description: bool(show.description, true, 'show.description'),
       bars: bool(show.bars, true, 'show.bars'),
     },
     services,

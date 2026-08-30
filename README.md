@@ -49,13 +49,17 @@ services:
 | `refresh_interval` | `5` | Seconds between browser refreshes |
 | `history_size` | `30` | Number of bars kept per service |
 | `degraded_threshold_ms` | `1000` | Slower than this while up = Degraded |
-| `show.uptime` | `true` | Show the `uptime · 99.9%` line |
-| `show.latency` | `true` | Show the latency column |
+| `show.description` | `true` | Show the line under each service name |
 | `show.bars` | `true` | Show the history bars |
 
-Per service: `name` and `url` are required; `timeout` (ms, default `10000`),
-`expected_status` (default any 2xx/3xx), `degraded_threshold_ms` and `headers`
-are optional.
+Per service: `name` and `url` are required. `description` sets the line under
+the name and falls back to the URL when omitted. `timeout` (ms, default
+`10000`), `expected_status` (default any 2xx/3xx), `degraded_threshold_ms` and
+`headers` are optional.
+
+Each row shows a badge with that service's uptime percentage, tinted by state —
+green operational, amber degraded, red down. Under the history bars, the left
+label is how far back the retained checks reach and the right is always `now`.
 
 Services can optionally be grouped:
 
