@@ -4,8 +4,6 @@ import type { StatusSnapshot } from '@shared/types.ts';
 interface State {
   data: StatusSnapshot | null;
   error: boolean;
-  /** Epoch ms of the last successful fetch, for the "Updated Ns ago" label. */
-  fetchedAt: number;
 }
 
 /**
@@ -14,7 +12,7 @@ interface State {
  * board costs nothing.
  */
 export function useStatus(): State {
-  const [state, setState] = useState<State>({ data: null, error: false, fetchedAt: 0 });
+  const [state, setState] = useState<State>({ data: null, error: false });
   // Held in a ref so changing the interval doesn't tear down the effect.
   const intervalRef = useRef(5);
 
@@ -39,7 +37,7 @@ export function useStatus(): State {
         const data = (await res.json()) as StatusSnapshot;
         if (cancelled) return;
         intervalRef.current = data.refreshInterval;
-        setState({ data, error: false, fetchedAt: Date.now() });
+        setState({ data, error: false });
       } catch {
         // Keep showing the last good snapshot; just flag the connection.
         if (!cancelled) setState((s) => ({ ...s, error: true }));

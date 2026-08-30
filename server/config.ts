@@ -6,6 +6,8 @@ export interface ServiceConfig {
   url: string;
   /** Shown under the name; defaults to the URL when unset. */
   description: string;
+  /** True when `description` fell back to the URL, so the UI can link it. */
+  descriptionIsUrl: boolean;
   timeout: number;
   expectedStatus: number[] | null;
   degradedThresholdMs: number;
@@ -25,7 +27,7 @@ export interface Config {
   refreshInterval: number;
   historySize: number;
   degradedThresholdMs: number;
-  show: { description: boolean; bars: boolean };
+  show: { description: boolean; bars: boolean; timeLabels: boolean };
   services: ServiceConfig[];
   groups: GroupConfig[] | null;
 }
@@ -112,6 +114,7 @@ function parseService(raw: unknown, index: number, fallbackDegraded: number): Se
     url: url.toString(),
     // Fall back to the URL, trimmed of its scheme so it reads as a label.
     description: (s.description as string)?.trim() || s.url.replace(/^https?:\/\//, ''),
+    descriptionIsUrl: !(s.description as string)?.trim(),
     timeout: num(s.timeout, DEFAULTS.timeout, `${label} timeout`, 100, 120_000),
     expectedStatus,
     degradedThresholdMs: num(
@@ -197,6 +200,7 @@ export function parseConfig(source: string): Config {
     show: {
       description: bool(show.description, true, 'show.description'),
       bars: bool(show.bars, true, 'show.bars'),
+      timeLabels: bool(show.time_labels, true, 'show.time_labels'),
     },
     services,
     groups,

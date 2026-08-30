@@ -1,40 +1,95 @@
-# Status Board configuration.
-# Everything except `services` is optional — a bare services list works fine.
+# ─────────────────────────────────────────────────────────────────────────────
+# Status Board configuration
+#
+# The only required key is `services`. Everything else has a sensible default,
+# so the shortest useful config is just:
+#
+#   services:
+#     - name: My Site
+#       url: https://example.com
+#
+# Commented-out keys below show the default value unless noted otherwise.
+# ─────────────────────────────────────────────────────────────────────────────
 
-title: Status
-theme: system # dark | light | system
-port: 8080
+# Heading on the card, and the browser tab title.
+# title: Status
 
-check_interval: 30 # seconds between checks of each service
-refresh_interval: 5 # seconds between browser refreshes
-history_size: 30 # number of bars kept per service
-degraded_threshold_ms: 1000 # slower than this while up = Degraded
+# dark | light | system  — `system` follows the viewer's OS setting.
+# theme: system
 
-show:
-  description: true # the line under each service name
-  bars: true
+# Port the server listens on inside the container.
+# port: 8080
+
+# Seconds between checks of each service. Checks are staggered across this
+# window so they don't all fire at once.
+# check_interval: 30
+
+# Seconds between browser refreshes. Polling pauses while the tab is hidden.
+# refresh_interval: 5
+
+# Number of history bars kept per service. The bars cover roughly
+# history_size × check_interval of time — 30 × 30s = 15 minutes.
+# history_size: 30
+
+# A service that responds but takes longer than this is Degraded rather than
+# Operational. Can be overridden per service.
+# degraded_threshold_ms: 1000
+
+# Toggle pieces of the row on or off.
+# show:
+#   description: true  # the line under each service name
+#   bars: true         # the history bar strip
+#   time_labels: true  # the "15m … now" labels under the bars
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Services — the only required section.
+# ─────────────────────────────────────────────────────────────────────────────
 
 services:
-  - name: API
-    url: https://api.example.com/health
-    # Shown under the name. Defaults to the URL when omitted.
-    description: Public REST API
-
+  # Minimal: just a name and a URL. With no `description`, the row shows the
+  # URL itself, linked and opening in a new tab.
   - name: Web App
     url: https://example.com
 
+  # `description` replaces the URL line with your own text.
+  - name: API
+    url: https://api.example.com/health
+    description: Public REST API
+
+  # Every per-service override, all optional:
   - name: Database
     url: https://db.example.com/healthz
-    # Optional per-service overrides:
-    timeout: 5000 # ms before the check is counted as down (default 10000)
-    expected_status: [200, 204] # default: any 2xx or 3xx
+    description: Primary Postgres cluster
+
+    # Milliseconds before a check counts as down. Default 10000.
+    timeout: 5000
+
+    # Which HTTP statuses count as up. Default: any 2xx or 3xx.
+    expected_status: [200, 204]
+
+    # Overrides the board-wide degraded_threshold_ms for this service.
     degraded_threshold_ms: 500
+
+    # Sent with every check — useful for health endpoints behind a token.
     headers:
       Authorization: Bearer some-token
+      X-Source: status-board
 
-# Optional. Omit entirely for a flat list.
+  - name: CDN
+    url: https://cdn.example.com/health.json
+
+  - name: Queue
+    url: https://queue.example.com/ping
+    description: Background job queue
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Groups — optional. Omit this section entirely for a single flat list.
+# Every service listed must exist in `services` above; any service you leave
+# out of a group simply won't be shown.
+# ─────────────────────────────────────────────────────────────────────────────
+
 # groups:
 #   - name: Core
-#     services: [API, Web App]
+#     services: [Web App, API]
 #   - name: Infrastructure
-#     services: [Database]
+#     services: [Database, CDN, Queue]

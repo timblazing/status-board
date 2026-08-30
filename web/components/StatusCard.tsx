@@ -2,7 +2,6 @@ import { m } from 'motion/react';
 import type { ServiceState, StatusSnapshot } from '@shared/types.ts';
 import { ServiceRow } from './ServiceRow.tsx';
 import { StatusPill } from './StatusPill.tsx';
-import { useRelativeTime } from '../lib/useRelativeTime.ts';
 
 const OVERALL_LABEL: Record<ServiceState, string> = {
   operational: 'All systems operational',
@@ -13,14 +12,12 @@ const OVERALL_LABEL: Record<ServiceState, string> = {
 
 interface Props {
   data: StatusSnapshot;
-  fetchedAt: number;
   stale: boolean;
   /** True only for the first render, to gate the row stagger. */
   firstPaint: boolean;
 }
 
-export function StatusCard({ data, fetchedAt, stale, firstPaint }: Props) {
-  const ago = useRelativeTime(fetchedAt);
+export function StatusCard({ data, stale, firstPaint }: Props) {
   const rows = data.groups
     ? data.groups.flatMap((g) => g.services)
     : data.services;
@@ -43,10 +40,10 @@ export function StatusCard({ data, fetchedAt, stale, firstPaint }: Props) {
         <h1 className="text-[17px] leading-none font-semibold tracking-tight">{data.title}</h1>
         <StatusPill state={data.overall} label={OVERALL_LABEL[data.overall]} dot />
         <span
-          className="ml-auto font-mono text-[11px] leading-none"
-          style={{ color: 'var(--muted)' }}
+          className="ml-auto font-mono text-[11px] leading-none tabular-nums"
+          style={{ color: stale ? 'var(--bad)' : 'var(--muted)' }}
         >
-          {stale ? 'Reconnecting…' : `Updated ${ago} ago`}
+          {stale ? 'Reconnecting…' : `${data.healthy}/${data.total} healthy`}
         </span>
       </header>
 
@@ -90,22 +87,6 @@ export function StatusCard({ data, fetchedAt, stale, firstPaint }: Props) {
           </ul>
         )}
       </div>
-
-      <footer
-        className="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 pt-[13px] pb-[6px] font-mono text-[11px] leading-none"
-        style={{ color: 'var(--muted)' }}
-      >
-        <span className="flex items-center gap-[6px]">
-          <span
-            className={stale ? 'size-[5px] rounded-full' : 'sb-pulse size-[5px] rounded-full'}
-            style={{ background: stale ? 'var(--bad)' : 'var(--ok)' }}
-          />
-          {stale ? 'offline' : 'live'} · auto-refresh every {data.refreshInterval}s
-        </span>
-        <span className="ml-auto tabular-nums">
-          {data.healthy}/{data.total} healthy
-        </span>
-      </footer>
     </m.main>
   );
 }

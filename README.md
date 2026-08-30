@@ -51,15 +51,18 @@ services:
 | `degraded_threshold_ms` | `1000` | Slower than this while up = Degraded |
 | `show.description` | `true` | Show the line under each service name |
 | `show.bars` | `true` | Show the history bars |
+| `show.time_labels` | `true` | Show the `15m … now` labels under the bars |
 
 Per service: `name` and `url` are required. `description` sets the line under
 the name and falls back to the URL when omitted. `timeout` (ms, default
 `10000`), `expected_status` (default any 2xx/3xx), `degraded_threshold_ms` and
 `headers` are optional.
 
-Each row shows a badge with that service's uptime percentage, tinted by state —
-green operational, amber degraded, red down. Under the history bars, the left
-label is how far back the retained checks reach and the right is always `now`.
+Each service name is followed by a badge with that service's uptime percentage,
+tinted by state — green operational, amber degraded, red down. When a service
+has no `description`, the URL is shown instead and links to the service in a new
+tab. Under the history bars, the left label is how far back the retained checks
+reach and the right is always `now`.
 
 Services can optionally be grouped:
 

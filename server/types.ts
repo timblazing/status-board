@@ -14,6 +14,10 @@ export interface ServiceStatus {
   state: ServiceState;
   /** Config `description`, falling back to the service's URL. */
   description: string;
+  /** The checked URL. Used to link the description when it is the fallback. */
+  url: string;
+  /** True when `description` is the URL fallback rather than configured text. */
+  descriptionIsUrl: boolean;
   /** Uptime over recorded checks only; null until the first check lands. */
   uptimePct: number | null;
   history: PackedHistory;
@@ -33,7 +37,7 @@ export interface StatusSnapshot {
   title: string;
   theme: 'dark' | 'light' | 'system';
   refreshInterval: number;
-  show: { description: boolean; bars: boolean };
+  show: { description: boolean; bars: boolean; timeLabels: boolean };
   /** Overall board state, derived from the worst service state. */
   overall: ServiceState;
   healthy: number;

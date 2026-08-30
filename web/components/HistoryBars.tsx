@@ -23,6 +23,8 @@ interface Props {
   history: string;
   /** Seconds the recorded checks span; null before there are two of them. */
   windowSeconds: number | null;
+  /** Config `show.time_labels`. */
+  labels: boolean;
 }
 
 /**
@@ -30,18 +32,18 @@ interface Props {
  * strip reads as a fixed window that fills in, not a growing list — and only
  * the slots whose colour actually changed repaint.
  */
-export const HistoryBars = memo(function HistoryBars({ history, windowSeconds }: Props) {
+export const HistoryBars = memo(function HistoryBars({ history, windowSeconds, labels }: Props) {
   const reduce = useReducedMotion();
   const slots = history.split('');
   const newest = slots.length - 1;
 
   return (
     <div className="flex flex-col gap-[6px]">
-      <div className="flex h-[26px] items-stretch gap-[2px] overflow-hidden" aria-hidden="true">
+      <div className="flex h-[26px] w-full items-stretch gap-[2px] overflow-hidden" aria-hidden="true">
         {slots.map((char, i) => (
           <m.span
             key={i}
-            className="w-[3px] shrink-0 rounded-[1.5px]"
+            className="min-w-[3px] flex-1 rounded-[1.5px]"
             // The newest bar grows up from the baseline as it lands.
             initial={i === newest && !reduce ? { scaleY: 0.15, opacity: 0.4 } : false}
             animate={{ scaleY: 1, opacity: 1, backgroundColor: COLOR[char] ?? COLOR['-'] }}
@@ -50,13 +52,15 @@ export const HistoryBars = memo(function HistoryBars({ history, windowSeconds }:
           />
         ))}
       </div>
-      <div
-        className="flex justify-between gap-2 font-mono text-[9px] leading-none"
-        style={{ color: 'var(--muted)' }}
-      >
-        <span>{windowSeconds == null ? '' : formatSpan(windowSeconds)}</span>
-        <span>now</span>
-      </div>
+      {labels && (
+        <div
+          className="flex justify-between gap-2 font-mono text-[9px] leading-none"
+          style={{ color: 'var(--muted)' }}
+        >
+          <span>{windowSeconds == null ? '' : formatSpan(windowSeconds)}</span>
+          <span>now</span>
+        </div>
+      )}
     </div>
   );
 });

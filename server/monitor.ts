@@ -129,6 +129,8 @@ class ServiceMonitor {
       name: this.config.name,
       state,
       description: this.config.description,
+      url: this.config.url,
+      descriptionIsUrl: this.config.descriptionIsUrl,
       uptimePct,
       history: packed,
       windowSeconds,

@@ -4,7 +4,7 @@ import { StatusCard } from './components/StatusCard.tsx';
 import { useStatus } from './lib/useStatus.ts';
 
 export function App() {
-  const { data, error, fetchedAt } = useStatus();
+  const { data, error } = useStatus();
   // Rows stagger in once; later refreshes must not re-animate the list.
   const firstPaint = useRef(true);
 
@@ -22,12 +22,7 @@ export function App() {
     <LazyMotion features={domAnimation} strict>
       <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
         {data ? (
-          <StatusCard
-            data={data}
-            fetchedAt={fetchedAt}
-            stale={error}
-            firstPaint={firstPaint.current}
-          />
+          <StatusCard data={data} stale={error} firstPaint={firstPaint.current} />
         ) : (
           <p className="font-mono text-[11px]" style={{ color: 'var(--muted)' }}>
             {error ? 'could not reach the status service' : 'loading…'}
