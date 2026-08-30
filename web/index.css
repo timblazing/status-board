@@ -1,0 +1,98 @@
+@import 'tailwindcss';
+
+/*
+ * Palette sampled from the reference board. Light is the canonical design:
+ * a warm-grey card holding a white list panel, near-black names, muted grey
+ * monospace metadata, and tinted status pills.
+ */
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+:root {
+  --page: #ececeb;
+  --card: #f7f7f6;
+  --card-border: #e2e2df;
+  --panel: #ffffff;
+  --panel-border: #ebebe8;
+  --rule: #e4e4e0;
+  --text: #1c1c1a;
+  --muted: #9a9a94;
+  --shadow: 0 1px 2px rgb(28 28 26 / 0.04), 0 12px 32px -8px rgb(28 28 26 / 0.10);
+
+  --ok: #3faa72;
+  --ok-pill-bg: #e7f4ec;
+  --ok-pill-fg: #1a7f4b;
+  --warn: #e8a33d;
+  --warn-pill-bg: #fdf3e2;
+  --warn-pill-fg: #b0771c;
+  --bad: #dc5b52;
+  --bad-pill-bg: #fceceb;
+  --bad-pill-fg: #b23c34;
+  --empty: #eeeeec;
+}
+
+/* Explicit dark, plus `system` once the head script resolves it. */
+:root[data-theme='dark'],
+:root[data-theme='system'][data-resolved='dark'] {
+  --page: #121213;
+  --card: #1a1a1c;
+  --card-border: #2a2a2d;
+  --panel: #202023;
+  --panel-border: #2c2c30;
+  --rule: #2e2e32;
+  --text: #f2f2f0;
+  --muted: #77777f;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -12px rgb(0 0 0 / 0.5);
+
+  --ok: #46a877;
+  --ok-pill-bg: #172c22;
+  --ok-pill-fg: #5cc38c;
+  --warn: #d99b3f;
+  --warn-pill-bg: #2e2416;
+  --warn-pill-fg: #e0ab55;
+  --bad: #d4605a;
+  --bad-pill-bg: #2e1a19;
+  --bad-pill-fg: #e0736c;
+  --empty: #292930;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The panel's final row never draws a rule — flat list or last group alike. */
+.sb-panel > :last-child > ul > li:last-child,
+.sb-panel > ul > li:last-child {
+  border-bottom-width: 0;
+}
+
+/* One shared keyframe for the dot that marks a live board / fresh state change. */
+@keyframes sb-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.sb-pulse {
+  animation: sb-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-pulse {
+    animation: none;
+  }
+}

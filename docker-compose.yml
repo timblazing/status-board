@@ -1,0 +1,12 @@
+services:
+  status-board:
+    # Swap `build: .` for the published image to skip building locally:
+    #   image: ghcr.io/timblazing/status-board:latest
+    build: .
+    image: status-board
+    container_name: status-board
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro

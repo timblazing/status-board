@@ -1,0 +1,39 @@
+# Status Board configuration.
+# Everything except `services` is optional — a bare services list works fine.
+
+title: Status
+theme: system # dark | light | system
+port: 8080
+
+check_interval: 30 # seconds between checks of each service
+refresh_interval: 5 # seconds between browser refreshes
+history_size: 30 # number of bars kept per service
+degraded_threshold_ms: 1000 # slower than this while up = Degraded
+
+show:
+  uptime: true
+  latency: true
+  bars: true
+
+services:
+  - name: API
+    url: https://api.example.com/health
+
+  - name: Web App
+    url: https://example.com
+
+  - name: Database
+    url: https://db.example.com/healthz
+    # Optional per-service overrides:
+    timeout: 5000 # ms before the check is counted as down (default 10000)
+    expected_status: [200, 204] # default: any 2xx or 3xx
+    degraded_threshold_ms: 500
+    headers:
+      Authorization: Bearer some-token
+
+# Optional. Omit entirely for a flat list.
+# groups:
+#   - name: Core
+#     services: [API, Web App]
+#   - name: Infrastructure
+#     services: [Database]
