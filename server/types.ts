@@ -35,8 +35,15 @@ export interface StatusGroup {
 
 export interface StatusSnapshot {
   title: string;
+  /** Config `favicon`; null means the built-in activity mark. */
+  favicon: string | null;
   theme: 'dark' | 'light' | 'system';
   refreshInterval: number;
+  /**
+   * Bumped every time config.yaml is reloaded. The client watches this to
+   * re-apply title, theme and favicon without a page refresh.
+   */
+  configVersion: number;
   show: { description: boolean; bars: boolean; timeLabels: boolean };
   /** Overall board state, derived from the worst service state. */
   overall: ServiceState;

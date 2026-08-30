@@ -9,10 +9,19 @@
 #       url: https://example.com
 #
 # Commented-out keys below show the default value unless noted otherwise.
+#
+# This file is watched: saving a change applies it within a second, with no
+# restart and no page refresh. `port` is the exception — it needs a restart to
+# bind. If an edit doesn't parse, the error is logged and the previous config
+# keeps running.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Heading on the card, and the browser tab title.
 # title: Status
+
+# URL of an image to use as the browser tab icon. Defaults to a built-in green
+# activity glyph.
+# favicon: https://example.com/logo.png
 
 # dark | light | system  — `system` follows the viewer's OS setting.
 # theme: system
@@ -51,7 +60,6 @@ services:
   - name: Web App
     url: https://example.com
 
-  # `description` replaces the URL line with your own text.
   - name: API
     url: https://api.example.com/health
     description: Public REST API

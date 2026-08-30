@@ -12,25 +12,37 @@ Prebuilt images are published to GitHub Container Registry for `linux/amd64`
 and `linux/arm64` (Raspberry Pi 3 and later, on a 64-bit OS):
 
 ```bash
-curl -O https://raw.githubusercontent.com/timblazing/status-board/main/config.example.yaml
-mv config.example.yaml config.yaml   # then edit it
+mkdir -p config
+curl -o config/config.yaml \
+  https://raw.githubusercontent.com/timblazing/status-board/main/config.example.yaml
+# then edit config/config.yaml
 
+# Mount the directory, not the file — see the note under Configuration.
 docker run -d --name status-board \
   -p 8080:8080 \
-  -v "$PWD/config.yaml:/config/config.yaml:ro" \
+  -v "$PWD/config:/config:ro" \
   ghcr.io/timblazing/status-board:latest
 ```
 
 Or build it yourself:
 
 ```bash
-cp config.example.yaml config.yaml   # then edit it
+mkdir -p config
+cp config.example.yaml config/config.yaml   # then edit it
 docker compose up -d
 ```
 
 Open <http://localhost:8080>.
 
 ## Configuration
+
+The board watches this file: save a change and it applies within a second,
+without restarting the container or refreshing the page.
+
+Mount the *directory* that holds `config.yaml`, not the file itself. Editors
+that save by writing a temp file and renaming it over the original swap the
+file's inode; a single-file bind mount keeps pointing at the old one, and the
+container stops seeing the file at all. `docker-compose.yml` already does this.
 
 The only required key is `services`. Everything else has a default:
 
@@ -43,6 +55,7 @@ services:
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `title` | `Status` | Heading and browser tab title |
+| `favicon` | built-in | URL of an image to use as the tab icon |
 | `theme` | `system` | `dark`, `light` or `system` |
 | `port` | `8080` | Port inside the container |
 | `check_interval` | `30` | Seconds between checks of each service |
@@ -57,6 +70,13 @@ Per service: `name` and `url` are required. `description` sets the line under
 the name and falls back to the URL when omitted. `timeout` (ms, default
 `10000`), `expected_status` (default any 2xx/3xx), `degraded_threshold_ms` and
 `headers` are optional.
+
+By default the tab icon is a green activity glyph. Point `favicon` at any image
+URL to replace it:
+
+```yaml
+favicon: https://example.com/logo.png
+```
 
 Each service name is followed by a badge with that service's uptime percentage,
 tinted by state — green operational, amber degraded, red down. When a service
@@ -88,9 +108,20 @@ Uptime % is computed over the checks actually recorded, so it is honest about a
 board that has only been running for a minute. History lives in memory only and
 resets when the container restarts.
 
+Across a config reload a service keeps its history as long as its name and what
+it actually probes (`url`, `timeout`, `expected_status`, `degraded_threshold_ms`
+and `headers`) are unchanged — so editing a `description` or reordering the list
+costs nothing. Renaming a service, pointing it somewhere else or changing
+`history_size` starts its history over, because the old bars would no longer
+describe the new check.
+
 ## Notes
 
-- Changing `config.yaml` requires a restart: `docker compose restart`.
+- Changing `config.yaml` applies immediately — the file is watched, and open
+  tabs pick the change up on their next poll. No restart, no refresh. The one
+  exception is `port`, which needs a restart to bind; a warning is logged if you
+  change it. A config that fails to parse is logged and ignored, and the board
+  keeps running on the last good one.
 - The page polls `/api/status`, which returns the whole board as JSON. Polling
   pauses while the browser tab is hidden.
 - If you change `port`, set `HEALTHCHECK_PORT` to match so Docker's healthcheck

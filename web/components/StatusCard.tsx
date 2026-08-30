@@ -1,14 +1,6 @@
 import { m } from 'motion/react';
-import type { ServiceState, StatusSnapshot } from '@shared/types.ts';
+import type { StatusSnapshot } from '@shared/types.ts';
 import { ServiceRow } from './ServiceRow.tsx';
-import { StatusPill } from './StatusPill.tsx';
-
-const OVERALL_LABEL: Record<ServiceState, string> = {
-  operational: 'All systems operational',
-  degraded: 'Partial degradation',
-  down: 'Major outage',
-  pending: 'Checking services',
-};
 
 interface Props {
   data: StatusSnapshot;
@@ -26,7 +18,9 @@ export function StatusCard({ data, stale, firstPaint }: Props) {
 
   return (
     <m.main
-      className="w-full max-w-[540px] rounded-[20px] border p-[10px] pt-[18px]"
+      // No horizontal padding: rows carry their own, so the rules between
+      // them span the full width of the card and read as real dividers.
+      className="w-full max-w-[540px] overflow-hidden rounded-[20px] border pt-[18px] pb-[4px]"
       style={{
         background: 'var(--card)',
         borderColor: 'var(--card-border)',
@@ -36,9 +30,8 @@ export function StatusCard({ data, stale, firstPaint }: Props) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 26 }}
     >
-      <header className="flex flex-wrap items-center gap-x-[10px] gap-y-2 px-2 pb-[14px]">
+      <header className="flex flex-wrap items-center gap-x-[10px] gap-y-2 px-[18px] pb-[14px]">
         <h1 className="text-[17px] leading-none font-semibold tracking-tight">{data.title}</h1>
-        <StatusPill state={data.overall} label={OVERALL_LABEL[data.overall]} dot />
         <span
           className="ml-auto font-mono text-[11px] leading-none tabular-nums"
           style={{ color: stale ? 'var(--bad)' : 'var(--muted)' }}
@@ -47,15 +40,12 @@ export function StatusCard({ data, stale, firstPaint }: Props) {
         </span>
       </header>
 
-      <div
-        className="sb-panel overflow-hidden rounded-[14px] border"
-        style={{ background: 'var(--panel)', borderColor: 'var(--panel-border)' }}
-      >
+      <div className="sb-panel">
         {data.groups ? (
           data.groups.map((group) => (
             <section key={group.name}>
               <h2
-                className="border-b border-dashed px-[18px] pt-[13px] pb-[9px] font-mono text-[10px] tracking-[0.08em] uppercase"
+                className="border-b px-[18px] pt-[13px] pb-[9px] font-mono text-[10px] tracking-[0.08em] uppercase"
                 style={{ color: 'var(--muted)', borderColor: 'var(--rule)' }}
               >
                 {group.name}

@@ -21,7 +21,7 @@ export const ServiceRow = memo(function ServiceRow({ service, show, index, anima
 
   return (
     <m.li
-      className="flex flex-col gap-[10px] border-b border-dashed px-[18px] py-[13px] sm:grid sm:grid-cols-[minmax(140px,auto)_minmax(0,1fr)] sm:items-center sm:gap-x-5"
+      className="flex flex-col gap-[10px] border-b px-[18px] py-[13px] sm:grid sm:grid-cols-[minmax(140px,auto)_minmax(0,1fr)] sm:items-center sm:gap-x-5"
       style={{ borderColor: 'var(--rule)' }}
       initial={animate ? { opacity: 0, y: 6 } : false}
       animate={{ opacity: 1, y: 0 }}

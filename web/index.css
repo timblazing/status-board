@@ -2,8 +2,9 @@
 
 /*
  * Palette sampled from the reference board. Light is the canonical design:
- * a warm-grey card holding a white list panel, near-black names, muted grey
- * monospace metadata, and tinted status pills.
+ * a warm-grey page holding a single card, near-black names, muted grey
+ * monospace metadata, and tinted status pills. The card has no inner panel —
+ * services are separated by a solid rule alone.
  */
 @theme {
   --font-sans:
@@ -14,11 +15,9 @@
 
 :root {
   --page: #ececeb;
-  --card: #f7f7f6;
+  --card: #ffffff;
   --card-border: #e2e2df;
-  --panel: #ffffff;
-  --panel-border: #ebebe8;
-  --rule: #e4e4e0;
+  --rule: #e8e8e4;
   --text: #1c1c1a;
   --muted: #9a9a94;
   --shadow: 0 1px 2px rgb(28 28 26 / 0.04), 0 12px 32px -8px rgb(28 28 26 / 0.10);
@@ -38,12 +37,11 @@
 /* Explicit dark, plus `system` once the head script resolves it. */
 :root[data-theme='dark'],
 :root[data-theme='system'][data-resolved='dark'] {
-  --page: #121213;
-  --card: #1a1a1c;
-  --card-border: #2a2a2d;
-  --panel: #202023;
-  --panel-border: #2c2c30;
-  --rule: #2e2e32;
+  /* zinc-950 page under a zinc-900-ish card, so the card still lifts off it. */
+  --page: #09090b;
+  --card: #161618;
+  --card-border: #26262a;
+  --rule: #26262a;
   --text: #f2f2f0;
   --muted: #77777f;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -12px rgb(0 0 0 / 0.5);
@@ -75,7 +73,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* The panel's final row never draws a rule — flat list or last group alike. */
+/*
+ * The list's final row never draws a rule — flat list or last group alike —
+ * so the card ends on padding rather than a dangling divider.
+ */
 .sb-panel > :last-child > ul > li:last-child,
 .sb-panel > ul > li:last-child {
   border-bottom-width: 0;

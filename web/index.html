@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="system">
+<html lang="en" data-theme="system" data-resolved="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,14 +7,14 @@
     <meta name="description" content="Service status" />
     <title>Status</title>
     <script>
-      // Resolve `system` before first paint so the card never flashes.
+      // Resolve the OS preference before first paint so the page never flashes
+      // the wrong theme. The configured theme arrives with the first
+      // /api/status response and takes over from there.
       (function () {
         var el = document.documentElement;
-        if (el.dataset.theme !== 'system') return;
-        var mq = window.matchMedia('(prefers-color-scheme: dark)');
-        var apply = function () { el.dataset.resolved = mq.matches ? 'dark' : 'light'; };
-        apply();
-        mq.addEventListener('change', apply);
+        el.dataset.resolved = window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
       })();
     </script>
   </head>

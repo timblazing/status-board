@@ -13,7 +13,7 @@ const STATE_CHAR: Record<Exclude<ServiceState, 'pending'>, string> = {
 };
 
 class ServiceMonitor {
-  readonly config: ServiceConfig;
+  config: ServiceConfig;
   private readonly size: number;
   private readonly slots: Slot[];
   /** Index of the next slot to write; the ring is read oldest-first from here. */
@@ -48,6 +48,15 @@ class ServiceMonitor {
     if (this.timer) clearInterval(this.timer);
     this.startTimer = null;
     this.timer = null;
+  }
+
+  /**
+   * Takes on an edited service definition while keeping the recorded history.
+   * Only called when `probeKey` matched, so the retained bars still describe
+   * the same request being made the same way.
+   */
+  adopt(config: ServiceConfig): void {
+    this.config = config;
   }
 
   private record(slot: Omit<NonNullable<Slot>, 't'>): void {
@@ -145,9 +154,33 @@ class ServiceMonitor {
  */
 const SEVERITY: Record<ServiceState, number> = { pending: 0, operational: 1, degraded: 2, down: 3 };
 
+/**
+ * Identity of a service *as a probe*: everything that decides what request is
+ * made and how the answer is graded. Two definitions sharing a key produce
+ * comparable results, so history recorded under one is still true of the other.
+ * Cosmetic keys (name, description) are deliberately absent.
+ */
+function probeKey(s: ServiceConfig): string {
+  return JSON.stringify([
+    s.url,
+    s.timeout,
+    s.expectedStatus,
+    s.degradedThresholdMs,
+    Object.entries(s.headers).sort(),
+  ]);
+}
+
 export class Monitor {
-  private readonly config: Config;
-  private readonly monitors: ServiceMonitor[];
+  private config: Config;
+  private monitors: ServiceMonitor[];
+  private running = false;
+  /** Bumped on every successful reload; surfaced to the client in snapshots. */
+  configVersion = 1;
+
+  /** The port the current config asks for. Binding it needs a restart. */
+  get port(): number {
+    return this.config.port;
+  }
 
   constructor(config: Config) {
     this.config = config;
@@ -155,13 +188,63 @@ export class Monitor {
   }
 
   start(): void {
+    this.running = true;
     const period = this.config.checkInterval * 1000;
     const step = period / Math.max(this.monitors.length, 1);
     this.monitors.forEach((m, i) => m.start(this.config.checkInterval, Math.round(i * step)));
   }
 
   stop(): void {
+    this.running = false;
     for (const m of this.monitors) m.stop();
+  }
+
+  /**
+   * Swaps in an edited config without dropping what we already know.
+   *
+   * A service keeps its bars when its name and probe definition both survive
+   * the edit; renaming it or changing what gets requested starts it fresh,
+   * because the old history would no longer describe the new check. Changing
+   * `history_size` also restarts every service, since the ring is fixed-width.
+   */
+  reload(next: Config): void {
+    const previous = this.monitors;
+    const sizeChanged = next.historySize !== this.config.historySize;
+
+    // Keyed by name so a reordered list still finds its history. Names are
+    // unique per config, which the parser enforces.
+    const reusable = new Map<string, ServiceMonitor>();
+    if (!sizeChanged) {
+      for (const m of previous) reusable.set(m.config.name, m);
+    }
+
+    this.monitors = next.services.map((s) => {
+      const existing = reusable.get(s.name);
+      if (existing && probeKey(existing.config) === probeKey(s)) {
+        existing.adopt(s);
+        reusable.delete(s.name);
+        return existing;
+      }
+      return new ServiceMonitor(s, next.historySize);
+    });
+
+    const carried = new Set(this.monitors);
+    // Retire the timers of everything not carried over, so a removed or
+    // redefined service stops making requests.
+    for (const m of previous) if (!carried.has(m)) m.stop();
+
+    this.config = next;
+    this.configVersion++;
+
+    if (!this.running) return;
+    // Restart the carried-over monitors too: check_interval may have changed,
+    // and the stagger has to be recomputed across the new list either way.
+    const period = next.checkInterval * 1000;
+    const step = period / Math.max(this.monitors.length, 1);
+    this.monitors.forEach((m, i) => {
+      m.stop();
+      m.start(next.checkInterval, Math.round(i * step));
+    });
   }
 
   snapshot(): StatusSnapshot {
@@ -183,8 +266,10 @@ export class Monitor {
 
     return {
       title: this.config.title,
+      favicon: this.config.favicon,
       theme: this.config.theme,
       refreshInterval: this.config.refreshInterval,
+      configVersion: this.configVersion,
       show: this.config.show,
       overall,
       healthy,

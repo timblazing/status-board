@@ -9,4 +9,9 @@ services:
     ports:
       - '8080:8080'
     volumes:
-      - ./config.yaml:/config/config.yaml:ro
+      # A directory is mounted, not the file itself. Most editors save by
+      # writing a temp file and renaming it over the original, which swaps the
+      # inode — a single-file bind mount still points at the old one and the
+      # container stops seeing the file at all. Mounting the directory keeps
+      # config hot-reload working with every editor.
+      - ./config:/config:ro

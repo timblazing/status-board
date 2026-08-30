@@ -21,6 +21,8 @@ export interface GroupConfig {
 
 export interface Config {
   title: string;
+  /** URL to an image used as the tab icon; null uses the built-in mark. */
+  favicon: string | null;
   theme: 'dark' | 'light' | 'system';
   port: number;
   checkInterval: number;
@@ -36,6 +38,7 @@ export class ConfigError extends Error {}
 
 const DEFAULTS = {
   title: 'Status',
+  favicon: null,
   theme: 'system',
   port: 8080,
   checkInterval: 30,
@@ -147,6 +150,9 @@ export function parseConfig(source: string): Config {
   if (c.title != null && typeof c.title !== 'string') {
     throw new ConfigError('title must be a string');
   }
+  if (c.favicon != null && (typeof c.favicon !== 'string' || !c.favicon.trim())) {
+    throw new ConfigError('favicon must be a url or path to an image');
+  }
   if (!Array.isArray(c.services) || c.services.length === 0) {
     throw new ConfigError('config.yaml needs a services: list with at least one entry');
   }
@@ -191,6 +197,7 @@ export function parseConfig(source: string): Config {
 
   return {
     title: (c.title as string) ?? DEFAULTS.title,
+    favicon: (c.favicon as string)?.trim() || DEFAULTS.favicon,
     theme: (c.theme as Config['theme']) ?? DEFAULTS.theme,
     port: num(c.port, DEFAULTS.port, 'port', 1, 65535),
     checkInterval: num(c.check_interval, DEFAULTS.checkInterval, 'check_interval', 1, 86_400),

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { domAnimation, LazyMotion } from 'motion/react';
 import { StatusCard } from './components/StatusCard.tsx';
+import { useDocumentChrome } from './lib/useDocumentChrome.ts';
 import { useStatus } from './lib/useStatus.ts';
 
 export function App() {
@@ -12,9 +13,8 @@ export function App() {
     if (data) firstPaint.current = false;
   }, [data]);
 
-  useEffect(() => {
-    if (data) document.title = data.title;
-  }, [data?.title]);
+  // Title, theme and favicon all follow config.yaml live.
+  useDocumentChrome(data);
 
   return (
     // domAnimation is the smallest feature set that covers our transform and
