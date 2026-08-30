@@ -18,7 +18,9 @@ export function StatusCard({ data, stale, firstPaint }: Props) {
 
   return (
     <m.main
-      className="w-full max-w-[540px] overflow-hidden rounded-[20px] border px-[18px] pt-[16px] pb-[6px]"
+      // No horizontal padding on the card: the header rule is the one divider
+      // that spans it edge to edge, so header and rows pad themselves instead.
+      className="w-full max-w-[540px] overflow-hidden rounded-[20px] border pt-[16px] pb-[6px]"
       style={{
         background: 'var(--card)',
         borderColor: 'var(--card-border)',
@@ -29,7 +31,7 @@ export function StatusCard({ data, stale, firstPaint }: Props) {
       transition={{ type: 'spring', stiffness: 260, damping: 26 }}
     >
       <header
-        className="flex flex-wrap items-center gap-x-[10px] gap-y-2 border-b pb-[13px]"
+        className="flex flex-wrap items-center gap-x-[10px] gap-y-2 border-b px-[18px] pb-[13px]"
         style={{ borderColor: 'var(--rule)' }}
       >
         <h1 className="text-[17px] leading-none font-semibold tracking-tight">{data.title}</h1>
@@ -46,7 +48,7 @@ export function StatusCard({ data, stale, firstPaint }: Props) {
           data.groups.map((group) => (
             <section key={group.name}>
               <h2
-                className="border-b pt-[13px] pb-[9px] font-mono text-[10px] tracking-[0.08em] uppercase"
+                className="mx-[18px] border-b pt-[13px] pb-[9px] font-mono text-[10px] tracking-[0.08em] uppercase"
                 style={{ color: 'var(--muted)', borderColor: 'var(--rule)' }}
               >
                 {group.name}

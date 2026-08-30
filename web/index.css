@@ -23,15 +23,22 @@
   --shadow: 0 1px 2px rgb(28 28 26 / 0.04), 0 12px 32px -8px rgb(28 28 26 / 0.10);
 
   --ok: #3faa72;
-  --ok-pill-bg: #e7f4ec;
-  --ok-pill-fg: #1a7f4b;
   --warn: #e8a33d;
-  --warn-pill-bg: #fdf3e2;
-  --warn-pill-fg: #b0771c;
   --bad: #dc5b52;
-  --bad-pill-bg: #fceceb;
-  --bad-pill-fg: #b23c34;
   --empty: #eeeeec;
+
+  /*
+   * Badges follow the shark badge recipe: a 10% tint of the variant colour,
+   * the colour itself as text, and a 20% border of it. The base hues are
+   * emerald/amber/red 500, the same ones shark's success, warning and
+   * destructive variants reference.
+   */
+  --success: oklch(0.696 0.17 162.48);
+  --success-fg: oklch(0.508 0.118 165.612);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-fg: oklch(0.555 0.163 48.998);
+  --destructive: oklch(0.637 0.237 25.331);
+  --destructive-fg: oklch(0.505 0.213 27.518);
 }
 
 /* Explicit dark, plus `system` once the head script resolves it. */
@@ -47,15 +54,17 @@
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -12px rgb(0 0 0 / 0.5);
 
   --ok: #46a877;
-  --ok-pill-bg: #172c22;
-  --ok-pill-fg: #5cc38c;
   --warn: #d99b3f;
-  --warn-pill-bg: #2e2416;
-  --warn-pill-fg: #e0ab55;
   --bad: #d4605a;
-  --bad-pill-bg: #2e1a19;
-  --bad-pill-fg: #e0736c;
   --empty: #292930;
+
+  /* Dark uses the 400 steps for text, as shark's dark tokens do. */
+  --success: oklch(0.696 0.17 162.48);
+  --success-fg: oklch(0.765 0.177 163.223);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-fg: oklch(0.828 0.189 84.429);
+  --destructive: oklch(0.637 0.237 25.331);
+  --destructive-fg: oklch(0.704 0.191 22.216);
 }
 
 html,

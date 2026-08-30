@@ -24,7 +24,7 @@ export const ServiceRow = memo(function ServiceRow({ service, show, index, anima
       // An even 1fr split rather than an auto name column: the bars then start
       // at the same x in every row and are all the same width, however long
       // the service name happens to be.
-      className="sb-row flex flex-col gap-[10px] py-[13px] sm:grid sm:grid-cols-2 sm:items-center sm:gap-x-5"
+      className="sb-row mx-[18px] flex flex-col gap-[10px] py-[13px] sm:grid sm:grid-cols-2 sm:items-center sm:gap-x-5"
       initial={animate ? { opacity: 0, y: 6 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.03, ease: [0.22, 1, 0.36, 1] }}
