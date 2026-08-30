@@ -74,11 +74,14 @@ body {
 }
 
 /*
- * The list's final row never draws a rule — flat list or last group alike —
- * so the card ends on padding rather than a dangling divider.
+ * Rules go *between* services, never after the last one, so the card ends on
+ * padding rather than a dangling divider. Drawing them as a top border on
+ * every row but the first gets that in one rule, and because the card now
+ * carries the horizontal padding the line spans the content rather than
+ * running edge to edge.
  */
-.sb-panel > :last-child > ul > li:last-child,
-.sb-panel > ul > li:last-child {
-  border-bottom-width: 0;
+.sb-row + .sb-row,
+.sb-panel > section + section > ul > .sb-row:first-child {
+  border-top: 1px solid var(--rule);
 }
 
