@@ -10,7 +10,8 @@ export interface ServiceConfig {
   descriptionIsUrl: boolean;
   timeout: number;
   expectedStatus: number[] | null;
-  degradedThresholdMs: number;
+  /** Null means slow responses are never graded as degraded. */
+  degradedThresholdMs: number | null;
   headers: Record<string, string>;
 }
 
@@ -28,7 +29,8 @@ export interface Config {
   checkInterval: number;
   refreshInterval: number;
   historySize: number;
-  degradedThresholdMs: number;
+  /** Null disables the slow-response check entirely; slow but up stays up. */
+  degradedThresholdMs: number | null;
   show: { description: boolean; bars: boolean; timeLabels: boolean };
   services: ServiceConfig[];
   groups: GroupConfig[] | null;
@@ -41,10 +43,10 @@ const DEFAULTS = {
   favicon: null,
   theme: 'system',
   port: 8080,
-  checkInterval: 30,
-  refreshInterval: 5,
+  checkInterval: 60,
+  refreshInterval: 30,
   historySize: 30,
-  degradedThresholdMs: 1000,
+  degradedThresholdMs: null,
   timeout: 10000,
 } as const;
 
@@ -65,7 +67,7 @@ function bool(value: unknown, fallback: boolean, label: string): boolean {
   return value;
 }
 
-function parseService(raw: unknown, index: number, fallbackDegraded: number): ServiceConfig {
+function parseService(raw: unknown, index: number, fallbackDegraded: number | null): ServiceConfig {
   if (raw == null || typeof raw !== 'object') {
     throw new ConfigError(`services[${index}] must be a mapping with a name and url`);
   }
@@ -120,13 +122,10 @@ function parseService(raw: unknown, index: number, fallbackDegraded: number): Se
     descriptionIsUrl: !(s.description as string)?.trim(),
     timeout: num(s.timeout, DEFAULTS.timeout, `${label} timeout`, 100, 120_000),
     expectedStatus,
-    degradedThresholdMs: num(
-      s.degraded_threshold_ms,
-      fallbackDegraded,
-      `${label} degraded_threshold_ms`,
-      1,
-      120_000,
-    ),
+    degradedThresholdMs:
+      s.degraded_threshold_ms == null
+        ? fallbackDegraded
+        : num(s.degraded_threshold_ms, 1000, `${label} degraded_threshold_ms`, 1, 120_000),
     headers,
   };
 }
@@ -157,13 +156,12 @@ export function parseConfig(source: string): Config {
     throw new ConfigError('config.yaml needs a services: list with at least one entry');
   }
 
-  const degradedThresholdMs = num(
-    c.degraded_threshold_ms,
-    DEFAULTS.degradedThresholdMs,
-    'degraded_threshold_ms',
-    1,
-    120_000,
-  );
+  // Null (the default) means "slow is still up", the way Uptime Kuma treats it.
+  // Set a number to opt into flagging slow-but-successful checks as degraded.
+  const degradedThresholdMs =
+    c.degraded_threshold_ms == null
+      ? DEFAULTS.degradedThresholdMs
+      : num(c.degraded_threshold_ms, 1000, 'degraded_threshold_ms', 1, 120_000);
   const services = c.services.map((s, i) => parseService(s, i, degradedThresholdMs));
 
   const seen = new Set<string>();

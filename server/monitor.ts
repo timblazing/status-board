@@ -6,6 +6,13 @@ const USER_AGENT = 'StatusBoard/1.0 (+https://github.com/status-board)';
 /** One slot of the history ring. `null` means the slot has never been filled. */
 type Slot = { ok: boolean; slow: boolean; t: number } | null;
 
+/**
+ * How many recent checks a failure keeps colouring the state after recovery.
+ * Without this, a single blip anywhere in a 30-slot ring pins the row to
+ * degraded for the whole window, long after the service came back.
+ */
+const FLAP_WINDOW = 3;
+
 const STATE_CHAR: Record<Exclude<ServiceState, 'pending'>, string> = {
   operational: 'o',
   degraded: 'd',
@@ -85,7 +92,8 @@ class ServiceMonitor {
         : res.status >= 200 && res.status < 400;
 
       if (ok) {
-        this.record({ ok: true, slow: ms > degradedThresholdMs });
+        // A null threshold means slow-but-successful is simply up.
+        this.record({ ok: true, slow: degradedThresholdMs != null && ms > degradedThresholdMs });
       } else {
         this.record({ ok: false, slow: false });
       }
@@ -110,8 +118,8 @@ class ServiceMonitor {
       state = 'pending';
     } else if (!last.ok) {
       state = 'down';
-    } else if (last.slow || history.some((s) => s && !s.ok)) {
-      // Up right now, but slow or recently flapping.
+    } else if (last.slow || history.slice(-FLAP_WINDOW).some((s) => s && !s.ok)) {
+      // Up right now, but slow, or it failed within the last few checks.
       state = 'degraded';
     } else {
       state = 'operational';

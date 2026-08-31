@@ -58,10 +58,10 @@ services:
 | `favicon` | built-in | URL of an image to use as the tab icon |
 | `theme` | `system` | `dark`, `light` or `system` |
 | `port` | `8080` | Port inside the container |
-| `check_interval` | `30` | Seconds between checks of each service |
-| `refresh_interval` | `5` | Seconds between browser refreshes |
+| `check_interval` | `60` | Seconds between checks of each service |
+| `refresh_interval` | `30` | Seconds between browser refreshes |
 | `history_size` | `30` | Number of bars kept per service |
-| `degraded_threshold_ms` | `1000` | Slower than this while up = Degraded |
+| `degraded_threshold_ms` | unset | Optional. Slower than this while up = Degraded |
 | `show.description` | `true` | Show the line under each service name |
 | `show.bars` | `true` | Show the history bars |
 | `show.time_labels` | `true` | Show the `15m … now` labels under the bars |
@@ -98,9 +98,10 @@ See `config.example.yaml` for a fully commented file.
 
 Each check is a `GET` that follows redirects, with a per-service timeout.
 
-- **Operational** — the last check passed, and no failures in the retained window.
-- **Degraded** — up right now, but slower than `degraded_threshold_ms`, or there
-  is at least one failure in the retained window.
+- **Operational** — the last check passed, and so did the two before it.
+- **Degraded** — up right now, but one of the last three checks failed, or the
+  response was slower than `degraded_threshold_ms`. That threshold is unset by
+  default, so a slow-but-successful check is simply up unless you opt in.
 - **Down** — the last check failed: a non-matching status, a timeout, or a
   connection/DNS/TLS error.
 

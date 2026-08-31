@@ -31,18 +31,22 @@
 
 # Seconds between checks of each service. Checks are staggered across this
 # window so they don't all fire at once.
-# check_interval: 30
+# check_interval: 60
 
-# Seconds between browser refreshes. Polling pauses while the tab is hidden.
-# refresh_interval: 5
+# Seconds between browser refreshes. Polling pauses while the tab is hidden,
+# so a board left open on a wall display costs one request a minute.
+# refresh_interval: 30
 
 # Number of history bars kept per service. The bars cover roughly
-# history_size × check_interval of time — 30 × 30s = 15 minutes.
+# history_size × check_interval of time — 30 × 60s = 30 minutes.
 # history_size: 30
 
-# A service that responds but takes longer than this is Degraded rather than
-# Operational. Can be overridden per service.
-# degraded_threshold_ms: 1000
+# Optional. When set, a service that responds successfully but takes longer
+# than this many milliseconds shows as Degraded instead of Operational.
+# Unset by default: a slow response is still a working response, and ordinary
+# network jitter would otherwise flip healthy services amber. Turn it on only
+# if you actually want latency alerting. Can be overridden per service.
+# degraded_threshold_ms: 2000
 
 # Toggle pieces of the row on or off.
 # show:
@@ -75,7 +79,8 @@ services:
     # Which HTTP statuses count as up. Default: any 2xx or 3xx.
     expected_status: [200, 204]
 
-    # Overrides the board-wide degraded_threshold_ms for this service.
+    # Opts this one service into latency grading, overriding the board-wide
+    # degraded_threshold_ms. A database health check should answer fast.
     degraded_threshold_ms: 500
 
     # Sent with every check — useful for health endpoints behind a token.
