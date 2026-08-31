@@ -22,6 +22,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Verify source
+        run: npm ci && npm run typecheck && npm test
+
       # QEMU lets the amd64 runner emit arm64 layers for Raspberry Pi and
       # other 64-bit ARM hosts.
       - uses: docker/setup-qemu-action@v3
