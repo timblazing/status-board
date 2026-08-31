@@ -34,33 +34,35 @@ export const ServiceRow = memo(function ServiceRow({ service, show, index, anima
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.03, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="min-w-0">
-        <div className="flex items-center gap-[7px]">
-          {icons && <ServiceIcon service={service} dark={dark} />}
-          <span className="truncate text-[15px] leading-tight font-medium">{name}</span>
-          <StatusPill state={state} label={badge} small />
+      <div className="flex min-w-0 items-center gap-[10px]">
+        {icons && <ServiceIcon service={service} dark={dark} />}
+        <div className="min-w-0">
+          <div className="flex items-center gap-[7px]">
+            <span className="truncate text-[15px] leading-tight font-medium">{name}</span>
+            <StatusPill state={state} label={badge} small />
+          </div>
+          {show.description &&
+            (descriptionIsUrl ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-[3px] block truncate font-mono text-[11px] leading-none hover:underline"
+                style={{ color: 'var(--muted)' }}
+                title={url}
+              >
+                {description}
+              </a>
+            ) : (
+              <div
+                className="mt-[3px] truncate font-mono text-[11px] leading-none"
+                style={{ color: 'var(--muted)' }}
+                title={description}
+              >
+                {description}
+              </div>
+            ))}
         </div>
-        {show.description &&
-          (descriptionIsUrl ? (
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-[3px] block truncate font-mono text-[11px] leading-none hover:underline"
-              style={{ color: 'var(--muted)' }}
-              title={url}
-            >
-              {description}
-            </a>
-          ) : (
-            <div
-              className="mt-[3px] truncate font-mono text-[11px] leading-none"
-              style={{ color: 'var(--muted)' }}
-              title={description}
-            >
-              {description}
-            </div>
-          ))}
       </div>
 
       {show.bars && (
