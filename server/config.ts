@@ -54,10 +54,20 @@ const DEFAULTS = {
   timeout: 10000,
 } as const;
 
-function num(value: unknown, fallback: number, label: string, min: number, max: number): number {
+function num(
+  value: unknown,
+  fallback: number,
+  label: string,
+  min: number,
+  max: number,
+  integer = false,
+): number {
   if (value == null) return fallback;
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     throw new ConfigError(`${label} must be a number`);
+  }
+  if (integer && !Number.isInteger(value)) {
+    throw new ConfigError(`${label} must be an integer (got ${value})`);
   }
   if (value < min || value > max) {
     throw new ConfigError(`${label} must be between ${min} and ${max} (got ${value})`);
@@ -205,10 +215,10 @@ export function parseConfig(source: string): Config {
     title: (c.title as string) ?? DEFAULTS.title,
     favicon: (c.favicon as string)?.trim() || DEFAULTS.favicon,
     theme: (c.theme as Config['theme']) ?? DEFAULTS.theme,
-    port: num(c.port, DEFAULTS.port, 'port', 1, 65535),
+    port: num(c.port, DEFAULTS.port, 'port', 1, 65535, true),
     checkInterval: num(c.check_interval, DEFAULTS.checkInterval, 'check_interval', 1, 86_400),
     refreshInterval: num(c.refresh_interval, DEFAULTS.refreshInterval, 'refresh_interval', 1, 3600),
-    historySize: num(c.history_size, DEFAULTS.historySize, 'history_size', 1, 200),
+    historySize: num(c.history_size, DEFAULTS.historySize, 'history_size', 1, 200, true),
     degradedThresholdMs,
     icons: bool(c.icons, true, 'icons'),
     show: {
