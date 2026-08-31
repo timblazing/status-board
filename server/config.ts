@@ -12,6 +12,8 @@ export interface ServiceConfig {
   expectedStatus: number[] | null;
   /** Null means slow responses are never graded as degraded. */
   degradedThresholdMs: number | null;
+  /** Explicit image URL overriding the looked-up logo; null to look one up. */
+  icon: string | null;
   headers: Record<string, string>;
 }
 
@@ -31,6 +33,8 @@ export interface Config {
   historySize: number;
   /** Null disables the slow-response check entirely; slow but up stays up. */
   degradedThresholdMs: number | null;
+  /** False hides every service icon, including explicit per-service ones. */
+  icons: boolean;
   show: { description: boolean; bars: boolean; timeLabels: boolean };
   services: ServiceConfig[];
   groups: GroupConfig[] | null;
@@ -83,6 +87,9 @@ function parseService(raw: unknown, index: number, fallbackDegraded: number | nu
   if (s.description != null && typeof s.description !== 'string') {
     throw new ConfigError(`${label} description must be a string`);
   }
+  if (s.icon != null && (typeof s.icon !== 'string' || !s.icon.trim())) {
+    throw new ConfigError(`${label} icon must be a url to an image`);
+  }
   let url: URL;
   try {
     url = new URL(s.url);
@@ -126,6 +133,7 @@ function parseService(raw: unknown, index: number, fallbackDegraded: number | nu
       s.degraded_threshold_ms == null
         ? fallbackDegraded
         : num(s.degraded_threshold_ms, 1000, `${label} degraded_threshold_ms`, 1, 120_000),
+    icon: (s.icon as string)?.trim() || null,
     headers,
   };
 }
@@ -202,6 +210,7 @@ export function parseConfig(source: string): Config {
     refreshInterval: num(c.refresh_interval, DEFAULTS.refreshInterval, 'refresh_interval', 1, 3600),
     historySize: num(c.history_size, DEFAULTS.historySize, 'history_size', 1, 200),
     degradedThresholdMs,
+    icons: bool(c.icons, true, 'icons'),
     show: {
       description: bool(show.description, true, 'show.description'),
       bars: bool(show.bars, true, 'show.bars'),

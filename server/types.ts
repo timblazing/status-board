@@ -18,6 +18,13 @@ export interface ServiceStatus {
   url: string;
   /** True when `description` is the URL fallback rather than configured text. */
   descriptionIsUrl: boolean;
+  /**
+   * Brand logo for the row, as light/dark variants — an explicit config
+   * `icon`, or one resolved from svgl. Null when the board has icons off, or
+   * when nothing was found: the client then falls back to the site's own
+   * favicon, and to a monogram after that.
+   */
+  icon: { light: string; dark: string } | null;
   /** Uptime over recorded checks only; null until the first check lands. */
   uptimePct: number | null;
   history: PackedHistory;
@@ -45,6 +52,12 @@ export interface StatusSnapshot {
    */
   configVersion: number;
   show: { description: boolean; bars: boolean; timeLabels: boolean };
+  /**
+   * Config `icons`. Distinct from a per-service `icon` being null: icons can
+   * be on while a given service has no brand logo, which is exactly when the
+   * client falls back to that site's favicon or a monogram.
+   */
+  iconsEnabled: boolean;
   /** Overall board state, derived from the worst service state. */
   overall: ServiceState;
   healthy: number;

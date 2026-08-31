@@ -1,6 +1,7 @@
 import { m } from 'motion/react';
 import type { StatusSnapshot } from '@shared/types.ts';
 import { ServiceRow } from './ServiceRow.tsx';
+import { useResolvedTheme } from '../lib/useResolvedTheme.ts';
 
 interface Props {
   data: StatusSnapshot;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function StatusCard({ data, stale, firstPaint }: Props) {
+  const dark = useResolvedTheme(data.theme);
   const rows = data.groups
     ? data.groups.flatMap((g) => g.services)
     : data.services;
@@ -61,6 +63,8 @@ export function StatusCard({ data, stale, firstPaint }: Props) {
                     show={data.show}
                     index={++index}
                     animate={firstPaint}
+                    dark={dark}
+                    icons={data.iconsEnabled}
                   />
                 ))}
               </ul>
@@ -75,6 +79,8 @@ export function StatusCard({ data, stale, firstPaint }: Props) {
                 show={data.show}
                 index={++index}
                 animate={firstPaint}
+                dark={dark}
+                icons={data.iconsEnabled}
               />
             ))}
           </ul>

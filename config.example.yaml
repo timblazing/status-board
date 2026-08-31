@@ -48,6 +48,12 @@
 # if you actually want latency alerting. Can be overridden per service.
 # degraded_threshold_ms: 2000
 
+# Show an icon to the left of each service name. Brand logos come from
+# svgl.app, looked up once per domain on the server and cached; anything svgl
+# doesn't know falls back to that site's own favicon, and then to a letter
+# tile. Set to false to hide icons entirely, including per-service `icon`.
+# icons: true
+
 # Toggle pieces of the row on or off.
 # show:
 #   description: true  # the line under each service name
@@ -82,6 +88,10 @@ services:
     # Opts this one service into latency grading, overriding the board-wide
     # degraded_threshold_ms. A database health check should answer fast.
     degraded_threshold_ms: 500
+
+    # Overrides the looked-up logo with an image of your own. Ignored when
+    # the board-wide `icons` is false.
+    icon: https://db.example.com/icon.png
 
     # Sent with every check — useful for health endpoints behind a token.
     headers:

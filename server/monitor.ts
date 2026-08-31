@@ -1,4 +1,5 @@
 import type { Config, ServiceConfig } from './config.ts';
+import { iconFor, warmIcons } from './icons.ts';
 import type { ServiceState, ServiceStatus, StatusSnapshot } from './types.ts';
 
 const USER_AGENT = 'StatusBoard/1.0 (+https://github.com/status-board)';
@@ -109,7 +110,7 @@ class ServiceMonitor {
     return [...this.slots.slice(this.cursor), ...this.slots.slice(0, this.cursor)];
   }
 
-  snapshot(): ServiceStatus {
+  snapshot(icons: boolean): ServiceStatus {
     const history = this.ordered();
     const last = history.at(-1);
 
@@ -148,6 +149,7 @@ class ServiceMonitor {
       description: this.config.description,
       url: this.config.url,
       descriptionIsUrl: this.config.descriptionIsUrl,
+      icon: icons ? iconFor(this.config) : null,
       uptimePct,
       history: packed,
       windowSeconds,
@@ -197,6 +199,9 @@ export class Monitor {
 
   start(): void {
     this.running = true;
+    // Logo lookups are fire-and-forget: rows render immediately and pick up
+    // their icons on a later poll, rather than the board waiting on svgl.
+    void warmIcons(this.config.services);
     const period = this.config.checkInterval * 1000;
     const step = period / Math.max(this.monitors.length, 1);
     this.monitors.forEach((m, i) => m.start(this.config.checkInterval, Math.round(i * step)));
@@ -243,6 +248,7 @@ export class Monitor {
 
     this.config = next;
     this.configVersion++;
+    void warmIcons(next.services);
 
     if (!this.running) return;
     // Restart the carried-over monitors too: check_interval may have changed,
@@ -256,7 +262,7 @@ export class Monitor {
   }
 
   snapshot(): StatusSnapshot {
-    const services = this.monitors.map((m) => m.snapshot());
+    const services = this.monitors.map((m) => m.snapshot(this.config.icons));
     const byName = new Map(services.map((s) => [s.name, s]));
 
     let overall: ServiceState = 'pending';
@@ -279,6 +285,7 @@ export class Monitor {
       refreshInterval: this.config.refreshInterval,
       configVersion: this.configVersion,
       show: this.config.show,
+      iconsEnabled: this.config.icons,
       overall,
       healthy,
       total: services.length,

@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { m } from 'motion/react';
 import type { ServiceStatus, StatusSnapshot } from '@shared/types.ts';
 import { HistoryBars } from './HistoryBars.tsx';
+import { ServiceIcon } from './ServiceIcon.tsx';
 import { StatusPill } from './StatusPill.tsx';
 
 interface Props {
@@ -10,9 +11,13 @@ interface Props {
   /** First-paint stagger index; refreshes re-render without animating. */
   index: number;
   animate: boolean;
+  /** Resolved theme, for picking a logo's light or dark variant. */
+  dark: boolean;
+  /** False when the board has icons turned off entirely. */
+  icons: boolean;
 }
 
-export const ServiceRow = memo(function ServiceRow({ service, show, index, animate }: Props) {
+export const ServiceRow = memo(function ServiceRow({ service, show, index, animate, dark, icons }: Props) {
   const { name, state, description, url, descriptionIsUrl, uptimePct, history, windowSeconds } =
     service;
   // The badge carries uptime, so it needs a legible placeholder before the
@@ -31,6 +36,7 @@ export const ServiceRow = memo(function ServiceRow({ service, show, index, anima
     >
       <div className="min-w-0">
         <div className="flex items-center gap-[7px]">
+          {icons && <ServiceIcon service={service} dark={dark} />}
           <span className="truncate text-[15px] leading-tight font-medium">{name}</span>
           <StatusPill state={state} label={badge} small />
         </div>
