@@ -73,7 +73,7 @@ favicon: https://example.com/logo.png
 
 Each service gets an icon to the left of its name: a brand logo from
 [svgl](https://svgl.app) where the domain is recognised, otherwise that site's
-own favicon, and a letter tile if neither loads. Lookups happen on the server,
+own favicon, and no icon at all if neither loads. Lookups happen on the server,
 once per domain, and are cached. Override one with any image URL, or turn the
 whole column off:
 

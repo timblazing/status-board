@@ -50,8 +50,8 @@
 
 # Show an icon to the left of each service name. Brand logos come from
 # svgl.app, looked up once per domain on the server and cached; anything svgl
-# doesn't know falls back to that site's own favicon, and then to a letter
-# tile. Set to false to hide icons entirely, including per-service `icon`.
+# doesn't know falls back to that site's own favicon. A service with neither
+# shows no icon. Set to false to hide icons entirely, per-service `icon` too.
 # icons: true
 
 # Toggle pieces of the row on or off.
