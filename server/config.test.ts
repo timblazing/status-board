@@ -20,6 +20,55 @@ test('applies defaults to a minimal valid configuration', () => {
   assert.deepEqual(config.show, { description: true, bars: true, timeLabels: true });
 });
 
+test('rejects a fractional history size as a ConfigError', () => {
+  assert.throws(
+    () => parseConfig(`
+history_size: 1.5
+${service()}`),
+    (error) =>
+      error instanceof ConfigError &&
+      !(error instanceof RangeError) &&
+      /history_size.*integer/.test(error.message),
+  );
+});
+
+test('rejects a fractional port as a ConfigError', () => {
+  assert.throws(
+    () => parseConfig(`
+port: 8080.5
+${service()}`),
+    (error) =>
+      error instanceof ConfigError && !(error instanceof RangeError) && /port.*integer/.test(error.message),
+  );
+});
+
+test('accepts integer port and history size values', () => {
+  const config = parseConfig(`
+port: 9090
+history_size: 5
+${service()}`);
+
+  assert.equal(config.port, 9090);
+  assert.equal(config.historySize, 5);
+});
+
+test('preserves fractional duration and threshold values', () => {
+  const config = parseConfig(`
+check_interval: 1.5
+refresh_interval: 2.5
+degraded_threshold_ms: 10.5
+services:
+  - name: API
+    url: http://localhost:3000/health
+    timeout: 100.5
+`);
+
+  assert.equal(config.checkInterval, 1.5);
+  assert.equal(config.refreshInterval, 2.5);
+  assert.equal(config.degradedThresholdMs, 10.5);
+  assert.equal(config.services[0].timeout, 100.5);
+});
+
 test('preserves a trimmed service name, description, and expected statuses', () => {
   const config = parseConfig(`
 services:
