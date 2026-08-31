@@ -155,3 +155,82 @@ test('does not overlap delayed scheduled probes', async () => {
     if (server.listening) await closeServer(server);
   }
 });
+
+test('records a delayed response as down after a timeout', async () => {
+  let server: Server | null = null;
+
+  try {
+    server = createServer((_request, response) => {
+      void (async () => {
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          response.statusCode = 200;
+        } finally {
+          response.end();
+        }
+      })();
+    });
+    await new Promise<void>((resolve, reject) => {
+      server!.once('error', reject);
+      server!.listen(0, '127.0.0.1', resolve);
+    });
+    const address = server.address();
+    assert(address && typeof address !== 'string');
+    const monitor = new Monitor(configFor(`http://127.0.0.1:${address.port}/health`, '    timeout: 100\n'));
+
+    try {
+      monitor.start();
+      await waitFor(() => monitor.snapshot().services[0].state === 'down');
+      assert.equal(monitor.snapshot().services[0].history, '--x');
+    } finally {
+      monitor.stop();
+    }
+  } finally {
+    if (server?.listening) await closeServer(server);
+  }
+});
+
+test('does not overlap a request when reload restarts an active monitor', async () => {
+  let inFlight = 0;
+  let maxInFlight = 0;
+  let completed = 0;
+  let server: Server | null = null;
+
+  try {
+    server = createServer((_request, response) => {
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      void (async () => {
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 1_600));
+          response.statusCode = 200;
+        } finally {
+          inFlight--;
+          response.end();
+          completed++;
+        }
+      })();
+    });
+    await new Promise<void>((resolve, reject) => {
+      server!.once('error', reject);
+      server!.listen(0, '127.0.0.1', resolve);
+    });
+    const address = server.address();
+    assert(address && typeof address !== 'string');
+    const url = `http://127.0.0.1:${address.port}/health`;
+    const monitor = new Monitor(configFor(url, '    timeout: 5000\n'));
+
+    try {
+      monitor.start();
+      await waitFor(() => inFlight === 1);
+      monitor.reload(configFor(url, '    timeout: 5000\n'));
+      await waitFor(() => completed >= 1, 4_000);
+      monitor.stop();
+      assert.equal(maxInFlight, 1);
+    } finally {
+      monitor.stop();
+    }
+  } finally {
+    if (server?.listening) await closeServer(server);
+  }
+});
