@@ -117,3 +117,41 @@ test('marks a slow successful response degraded without counting it as healthy',
     await closeServer(server);
   }
 });
+
+test('does not overlap delayed scheduled probes', async () => {
+  let inFlight = 0;
+  let maxInFlight = 0;
+  const server = createServer((_request, response) => {
+    inFlight++;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    void (async () => {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1_600));
+        response.statusCode = 200;
+      } finally {
+        inFlight--;
+        response.end();
+      }
+    })();
+  });
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', resolve);
+    });
+    const address = server.address();
+    assert(address && typeof address !== 'string');
+    const monitor = new Monitor(configFor(`http://127.0.0.1:${address.port}/health`, '    timeout: 5000\n'));
+
+    try {
+      monitor.start();
+      await waitFor(() => monitor.snapshot().services[0].state === 'operational', 4_000);
+      assert.equal(maxInFlight, 1);
+    } finally {
+      monitor.stop();
+    }
+  } finally {
+    if (server.listening) await closeServer(server);
+  }
+});

@@ -29,6 +29,7 @@ class ServiceMonitor {
   private filled = 0;
   private timer: NodeJS.Timeout | null = null;
   private startTimer: NodeJS.Timeout | null = null;
+  private checkInFlight = false;
   lastCheckedAt = 0;
 
   constructor(config: ServiceConfig, historySize: number) {
@@ -75,32 +76,39 @@ class ServiceMonitor {
   }
 
   private async check(): Promise<void> {
-    const { url, timeout, expectedStatus, degradedThresholdMs, headers } = this.config;
-    const startedAt = performance.now();
+    if (this.checkInFlight) return;
+    this.checkInFlight = true;
+
     try {
-      const res = await fetch(url, {
-        method: 'GET',
-        redirect: 'follow',
-        signal: AbortSignal.timeout(timeout),
-        headers: { 'user-agent': USER_AGENT, ...headers },
-      });
-      // Drain the body so the socket can be reused rather than left half-read.
-      await res.body?.cancel();
+      const { url, timeout, expectedStatus, degradedThresholdMs, headers } = this.config;
+      const startedAt = performance.now();
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          redirect: 'follow',
+          signal: AbortSignal.timeout(timeout),
+          headers: { 'user-agent': USER_AGENT, ...headers },
+        });
+        // Drain the body so the socket can be reused rather than left half-read.
+        await res.body?.cancel();
 
-      const ms = Math.round(performance.now() - startedAt);
-      const ok = expectedStatus
-        ? expectedStatus.includes(res.status)
-        : res.status >= 200 && res.status < 400;
+        const ms = Math.round(performance.now() - startedAt);
+        const ok = expectedStatus
+          ? expectedStatus.includes(res.status)
+          : res.status >= 200 && res.status < 400;
 
-      if (ok) {
-        // A null threshold means slow-but-successful is simply up.
-        this.record({ ok: true, slow: degradedThresholdMs != null && ms > degradedThresholdMs });
-      } else {
+        if (ok) {
+          // A null threshold means slow-but-successful is simply up.
+          this.record({ ok: true, slow: degradedThresholdMs != null && ms > degradedThresholdMs });
+        } else {
+          this.record({ ok: false, slow: false });
+        }
+      } catch {
+        // Timeouts, DNS failures, TLS errors, refused connections — all "down".
         this.record({ ok: false, slow: false });
       }
-    } catch {
-      // Timeouts, DNS failures, TLS errors, refused connections — all "down".
-      this.record({ ok: false, slow: false });
+    } finally {
+      this.checkInFlight = false;
     }
   }
 
